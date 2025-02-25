@@ -1,0 +1,70 @@
+CAPI=2:
+name: emin::router:0.0.0
+
+filesets:
+  rtl:
+    files:
+      - regblock/router_regs_pkg.sv : {file_type: systemVerilogSource}
+      - regblock/router_regs.sv : {file_type: systemVerilogSource}
+  tb:
+    # Just for debugging if verilated DUT can be instantiated
+    files:
+      - tb/router_tb.cpp : {file_type: cppSource}
+
+  systemc_tb:
+    files:
+      - tb/testbench_sc.cpp : {file_type: cppSource}
+
+targets:
+  default: &default
+    filesets:
+      - rtl
+      - tb
+    toplevel: router_regs
+    default_tool: verilator
+    tools:
+      verilator:
+        verilator_options:
+          - -Wno-UNPACKED
+          - -Wno-UNOPTFLAT
+
+  sim:
+    <<: *default
+    filesets:
+      - rtl
+      - tb
+    toplevel: router_regs
+    tools:
+      verilator:
+        mode: cc
+        verilator_options:
+          - --trace
+          - --coverage
+          - --assert
+          - -Wall
+        make_options:
+          - VM_PARALLEL_BUILDS=1
+        run_options:
+          - +vcd
+
+  systemc_sim:
+    <<: *default
+    filesets:
+      - rtl
+      - systemc_tb
+    toplevel: router_regs
+    tools:
+      verilator:
+        mode: sc
+        verilator_options:
+          - --coverage
+          - --assert
+          - -Wall
+          - --sc
+        make_options:
+          - VM_PARALLEL_BUILDS=1
+          - SYSTEMC=1
+          - LDFLAGS=-L/usr/local/lib
+          - LDLIBS=-lsystemc
+        libs:
+          - systemc

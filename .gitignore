@@ -1,0 +1,13 @@
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# FuseSoC build files
+build/
+fusesoc.conf
+fusesoc_libraries/
+
+# Verilator
+*.vcd
+*.log
