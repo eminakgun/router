@@ -39,14 +39,10 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential cmake libsystemc-dev
         
-    - name: Install Verilator
-      run: |
-        wget https://github.com/verilator/verilator/archive/refs/tags/v${{ matrix.verilator-version }}.tar.gz
-        tar -xzf v${{ matrix.verilator-version }}.tar.gz
-        cd verilator-${{ matrix.verilator-version }}
-        ./configure --prefix=/usr/local
-        make -j$(nproc)
-        sudo make install
+    - name: Install Verilator Action
+      uses: V0XNIHILI/install-verilator-action@v0.0.2
+      with:
+        version: ${{ matrix.verilator-version }}
         
     - name: Setup virtual environment
       run: make
@@ -92,14 +88,10 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential cmake libsystemc-dev
         
-    - name: Install Verilator (latest)
-      run: |
-        wget https://github.com/verilator/verilator/archive/refs/tags/v5.028.tar.gz
-        tar -xzf v5.028.tar.gz
-        cd verilator-5.028
-        ./configure --prefix=/usr/local
-        make -j$(nproc)
-        sudo make install
+    - name: Install Verilator Action
+      uses: V0XNIHILI/install-verilator-action@v0.0.2
+      with:
+        version: "5.028"
         
     - name: Setup environment
       run: |
