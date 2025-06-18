@@ -55,13 +55,16 @@ This project implements a **router** that bridges an **APB configuration interfa
 2. **Compile and Simulate**:
 
    ```bash
-   # SystemVerilog
-   cd tb/uvm_sv
-   make compile && make run
-
-   # SystemC
-   cd tb/uvm_sc
-   make compile && make run
+   # Basic SystemC testbench
+   make systemc_sim
+   
+   # UVM SystemC testbench with APB agent (requires UVM-SystemC)
+   source venv/bin/activate
+   fusesoc run --target=uvm_systemc_sim emin::router
+   
+   # Legacy targets (for reference)
+   # SystemVerilog: cd tb/uvm_sv && make compile && make run
+   # SystemC: cd tb/uvm_sc && make compile && make run
    ```
 
 ## Register Map
@@ -87,12 +90,44 @@ typedef struct packed {
 } axi_stream_packet_t;
 ```
 
+## Current Status
+
+### Phase-1 Progress ✅
+The project has successfully completed the initial phase of router verification infrastructure:
+
+- **✅ UVM-SystemC Integration**: APB agent successfully compiled and integrated with UVM-SystemC framework
+- **✅ Verilated DUT**: Router register block properly verilated and connected to SystemC testbench  
+- **✅ Hello-World Test**: Basic APB sequence implemented that stimulates router registers:
+  - CHANNEL_ENABLE (0x00) - Enable/disable 4 channels
+  - MODE (0x04) - Routing mode configuration
+  - PRIORITY (0x08) - Channel priority settings
+  - PACKET_COUNT (0x0C) - Packet counter readback
+
+### Available Build Targets
+```bash
+# Basic Verilator build
+make build
+
+# SystemC simulation  
+make systemc_sim
+
+# UVM SystemC testbench with APB agent
+fusesoc run --target=uvm_systemc_sim emin::router
+```
+
+### Next Steps
+- **Priority 1**: Fix APB virtual interface connection and agent configuration for full UVM sequence execution
+- **Priority 2**: Generate RAL (Register Abstraction Layer) for enhanced register access  
+- **Priority 3**: Implement comprehensive test sequences using RAL
+
 ## TODO
 
 ### Phase-1
 
 - [X] Verilate register dut, use FuseSoC core files to verilate
 - [X] Create top level testbench in SystemC which instantiates the verilated DUT
-- [ ] Include APB agent and compile top level testbench, i.e run a APB sequence
+- [X] Include APB agent and compile top level SystemC testbench, use proper UVM architecture
+- [X] Write a hello-world like app that runs a APB sequence to stimulate some registers
+- [ ] **[HIGH PRIORITY]** Fix APB virtual interface connection and agent configuration for full UVM sequence execution
 - [ ] Generate RAL for SystemC, use PeakRDL generated SV-UVM code to translate to UVM-SC
 - [ ] Write first sequence to program the DUT and observe DUT outputs!
