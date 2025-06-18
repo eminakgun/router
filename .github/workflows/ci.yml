@@ -61,7 +61,7 @@ jobs:
       run: make build
       
     - name: Upload build artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: build-artifacts-${{ matrix.verilator-version }}
         path: |
@@ -116,7 +116,7 @@ jobs:
         find build/ -name "*.dat" -o -name "coverage.dat" | head -10
         
     - name: Upload simulation artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: sim-artifacts-${{ matrix.target }}
         path: |
@@ -135,7 +135,7 @@ jobs:
       uses: actions/checkout@v4
       
     - name: Download simulation artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: sim-artifacts-sim
         path: artifacts/
@@ -152,7 +152,7 @@ jobs:
         echo "Branch coverage: TBD%" >> coverage-summary.txt
         
     - name: Upload coverage report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: coverage-report
         path: coverage-summary.txt
