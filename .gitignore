@@ -11,3 +11,7 @@ fusesoc_libraries/
 # Verilator
 *.vcd
 *.log
+
+# UVM-SystemC configuration backups
+router.core.backup
+router.core.resolved
