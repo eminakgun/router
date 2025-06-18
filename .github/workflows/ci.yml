@@ -1,0 +1,158 @@
+name: RTL Verification CI
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master ]
+
+env:
+  PYTHON_VERSION: "3.11"
+  SYSTEMC_VERSION: "2.3.4"
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        verilator-version: ["5.020", "5.028"]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake libsystemc-dev
+        
+    - name: Install Verilator
+      run: |
+        wget https://github.com/verilator/verilator/archive/refs/tags/v${{ matrix.verilator-version }}.tar.gz
+        tar -xzf v${{ matrix.verilator-version }}.tar.gz
+        cd verilator-${{ matrix.verilator-version }}
+        ./configure --prefix=/usr/local
+        make -j$(nproc)
+        sudo make install
+        
+    - name: Setup virtual environment
+      run: make
+      
+    - name: Initialize FuseSoC
+      run: make init
+      
+    - name: Generate registers
+      run: make regs
+      
+    - name: Build default target
+      run: make build
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifacts-${{ matrix.verilator-version }}
+        path: |
+          build/
+          regblock/
+        retention-days: 7
+
+  simulation:
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    strategy:
+      matrix:
+        target: ["sim", "systemc_sim"]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake libsystemc-dev
+        
+    - name: Install Verilator (latest)
+      run: |
+        wget https://github.com/verilator/verilator/archive/refs/tags/v5.028.tar.gz
+        tar -xzf v5.028.tar.gz
+        cd verilator-5.028
+        ./configure --prefix=/usr/local
+        make -j$(nproc)
+        sudo make install
+        
+    - name: Setup environment
+      run: |
+        make
+        make init
+        make regs
+        
+    - name: Run ${{ matrix.target }} simulation
+      run: make ${{ matrix.target }}
+      
+    - name: Collect coverage data
+      if: matrix.target == 'sim'
+      run: |
+        find build/ -name "*.dat" -o -name "coverage.dat" | head -10
+        
+    - name: Upload simulation artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: sim-artifacts-${{ matrix.target }}
+        path: |
+          build/**/*.vcd
+          build/**/*.dat
+          build/**/logs/
+        retention-days: 7
+
+  coverage:
+    runs-on: ubuntu-latest
+    needs: simulation
+    if: always()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download simulation artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: sim-artifacts-sim
+        path: artifacts/
+        
+    - name: Process coverage data
+      run: |
+        echo "Coverage processing would go here"
+        find artifacts/ -name "*.dat" -exec ls -la {} \;
+        
+    - name: Generate coverage report
+      run: |
+        echo "Coverage report generation would go here"
+        echo "Line coverage: TBD%" > coverage-summary.txt
+        echo "Branch coverage: TBD%" >> coverage-summary.txt
+        
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage-summary.txt
