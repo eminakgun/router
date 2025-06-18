@@ -17,6 +17,10 @@ make build             # Build default target using Verilator
 make sim              # Run SystemVerilog simulation with coverage/tracing
 make systemc_sim      # Run SystemC simulation
 
+# UVM-SystemC simulation (requires UVM-SystemC installation)
+make uvm_systemc      # Auto-detect paths and run UVM-SystemC testbench
+make uvm_systemc_manual  # Run with manual environment setup
+
 # Register generation
 make regs             # Generate register RTL from SystemRDL (uses peakrdl)
 
@@ -56,3 +60,42 @@ This is a **4-channel AXI Stream router** with APB configuration interface:
 - `systemc_sim`: SystemC mode with testbench_sc.cpp
 
 The project is in Phase-1 development focusing on register DUT verilation and SystemC testbench integration.
+
+## UVM-SystemC Environment Setup
+
+### Automatic Path Detection (Recommended)
+The build system automatically detects UVM-SystemC and SystemC installations:
+
+```bash
+# Auto-detect and run (most convenient)
+make uvm_systemc
+```
+
+### Manual Environment Setup
+For custom installations, set environment variables:
+
+```bash
+# Set custom paths
+export UVM_SYSTEMC_HOME=/path/to/your/uvm-systemc
+export SYSTEMC_HOME=/path/to/your/systemc
+
+# Then run
+make uvm_systemc_manual
+# or directly:
+fusesoc run --target=uvm_systemc_sim emin::router
+```
+
+### Supported Installation Locations
+The auto-detection searches these common paths:
+- `/usr/local/uvm-systemc/` and `/usr/local/`
+- `/opt/uvm-systemc/` and `/opt/systemc/`
+- `/usr/lib/x86_64-linux-gnu/` (Ubuntu/Debian packages)
+- `/opt/homebrew/` (macOS Homebrew)
+- `${HOME}/.local/` (user installations)
+
+### Troubleshooting
+If auto-detection fails:
+1. Check if UVM-SystemC is installed: `find /usr -name "*uvm-systemc*" 2>/dev/null`
+2. Verify SystemC installation: `find /usr -name "libsystemc*" 2>/dev/null`
+3. Set environment variables manually (see above)
+4. Check the setup script output: `bash scripts/setup_uvm_paths.sh`
