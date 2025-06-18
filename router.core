@@ -15,6 +15,29 @@ filesets:
     files:
       - tb/testbench_sc.cpp : {file_type: cppSource}
 
+  apb_agent:
+    file_type: cppSource
+    files:
+      - dv/apb-sc-uvm/apb/src/apb_agent.cpp
+      - dv/apb-sc-uvm/apb/src/apb_master.cpp
+      - dv/apb-sc-uvm/apb/src/apb_monitor.cpp
+      - dv/apb-sc-uvm/apb/src/apb_rw.cpp
+      - dv/apb-sc-uvm/apb/src/reg2apb_adapter.cpp
+      - dv/apb-sc-uvm/apb/inc/apb.h : {file_type: cppHeaderSource}
+      - dv/apb-sc-uvm/apb/inc/apb_agent.h : {file_type: cppHeaderSource}
+      - dv/apb-sc-uvm/apb/inc/apb_config.h : {file_type: cppHeaderSource}
+      - dv/apb-sc-uvm/apb/inc/apb_if.h : {file_type: cppHeaderSource}
+      - dv/apb-sc-uvm/apb/inc/apb_master.h : {file_type: cppHeaderSource}
+      - dv/apb-sc-uvm/apb/inc/apb_monitor.h : {file_type: cppHeaderSource}
+      - dv/apb-sc-uvm/apb/inc/apb_rw.h : {file_type: cppHeaderSource}
+      - dv/apb-sc-uvm/apb/inc/apb_sequencer.h : {file_type: cppHeaderSource}
+      - dv/apb-sc-uvm/apb/inc/reg2apb_adapter.h : {file_type: cppHeaderSource}
+
+  uvm_tb:
+    file_type: cppSource
+    files:
+      - tb/uvm_router_test.cpp
+
 targets:
   default: &default
     filesets:
@@ -68,3 +91,24 @@ targets:
           - LDLIBS=-lsystemc
         libs:
           - systemc
+
+  uvm_systemc_sim:
+    <<: *default
+    filesets:
+      - rtl
+      - apb_agent
+      - uvm_tb
+    toplevel: router_regs
+    tools:
+      verilator:
+        mode: sc
+        verilator_options:
+          - --coverage
+          - --assert
+          - -Wall
+          - --sc
+          - -CFLAGS "-I/usr/local/uvm-systemc/include -Isrc/emin__router_0.0.0/dv/apb-sc-uvm/apb/inc -Isrc/emin__router_0.0.0/dv/apb-sc-uvm/apb/src/../inc"
+          - -LDFLAGS "-L/usr/local/lib -L/usr/local/uvm-systemc/lib -lsystemc -luvm-systemc"
+        make_options:
+          - VM_PARALLEL_BUILDS=1
+          - SYSTEMC=1
