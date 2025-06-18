@@ -108,7 +108,11 @@ targets:
           - -Wall
           - --sc
           - -CFLAGS "-I/usr/local/uvm-systemc/include -Isrc/emin__router_0.0.0/dv/apb-sc-uvm/apb/inc -Isrc/emin__router_0.0.0/dv/apb-sc-uvm/apb/src/../inc"
-          - -LDFLAGS "-L/usr/local/lib -L/usr/local/uvm-systemc/lib -lsystemc -luvm-systemc"
+          - -LDFLAGS "-L/usr/local/lib -L/usr/local/uvm-systemc/lib -Wl,-rpath,/usr/local/uvm-systemc/lib -Wl,-rpath,/usr/local/lib -lsystemc -luvm-systemc"
         make_options:
           - VM_PARALLEL_BUILDS=1
           - SYSTEMC=1
+        run_options:
+          - +verilator+rand+reset+2
+        env:
+          LD_LIBRARY_PATH: "/usr/local/uvm-systemc/lib:/usr/local/lib:${LD_LIBRARY_PATH}"
